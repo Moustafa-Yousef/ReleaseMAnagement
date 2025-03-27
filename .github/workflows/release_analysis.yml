@@ -1,6 +1,6 @@
 name: Release Analysis
 
-on:
+on: 
   push:
     branches:
       - main
@@ -9,8 +9,7 @@ on:
       - main
 
 jobs:
-  jobs:
-  test:
+  analyze_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -27,8 +26,8 @@ jobs:
 
       - name: Start API Server
         run: |
-          python api.py &
-          sleep 10  # انتظار 10 ثوانٍ للتأكد من تشغيل السيرفر
+          python analysis_server.py &
+          sleep 10  # انتظار 10 ثواني للتأكد من تشغيل السيرفر
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
