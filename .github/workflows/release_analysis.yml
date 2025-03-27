@@ -32,5 +32,8 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
 
+      - name: Install Dart dependencies
+        run: dart pub get
+
       - name: Run Dart script
         run: dart release_manager.dart
