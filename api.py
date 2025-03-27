@@ -1,14 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torch
+from functools import lru_cache
 
 app = FastAPI()
 
-# تحميل DistilBERT والـ Tokenizer
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=3)
+@lru_cache()
+def load_model_and_tokenizer():
+    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+    model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=3)
+    return tokenizer, model
 
-# الفئات المتوقعة
+tokenizer, model = load_model_and_tokenizer()
 LABELS = ["major", "minor", "patch"]
 
 @app.post("/analyze")
@@ -17,21 +20,22 @@ async def analyze_code(data: dict):
     new_code = data.get("new_code")
 
     if not old_code or not new_code:
-        return {"error": "Both old_code and new_code are required."}
+        raise HTTPException(status_code=400, detail="Both old_code and new_code are required.")
+    
+    if len(old_code) > 10000 or len(new_code) > 10000:
+        raise HTTPException(status_code=400, detail="Input code is too long.")
 
-    # تجهيز البيانات للموديل
     input_text = f"old code: {old_code} [SEP] new code: {new_code}"
     inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
 
-    # تمرير البيانات للموديل
-    with torch.no_grad():
-        outputs = model(**inputs)
-
-    # استخراج التوقع
-    predicted_label = torch.argmax(outputs.logits, dim=1).item()
-    change_type = LABELS[predicted_label]
-
-    return {"Predicted Change Type": change_type}
+    try:
+        with torch.no_grad():
+            outputs = model(**inputs)
+        predicted_label = torch.argmax(outputs.logits, dim=1).item()
+        change_type = LABELS[predicted_label]
+        return {"Predicted Change Type": change_type}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
