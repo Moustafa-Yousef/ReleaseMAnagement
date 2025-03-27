@@ -100,8 +100,10 @@ void main(List<String> arguments) async {
       // جلب الإصدارات من Git
       oldVersion = await getLastTag();
       newVersion = (await Process.run('git', ['rev-parse', '--short', 'HEAD'])).stdout.toString().trim();
-      oldCode = await getCodeFromVersion(oldVersion.isEmpty ? 'HEAD^' : oldVersion);
-      newCode = await getCodeFromVersion(newVersion);
+      oldCode = (await Process.run('git', ['diff', oldVersion])).stdout.toString();
+      newCode = (await Process.run('git', ['diff', newVersion])).stdout.toString();
+
+
     }
 
     // تحليل التغييرات
