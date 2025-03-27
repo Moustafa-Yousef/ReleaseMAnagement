@@ -1,0 +1,46 @@
+name: Release Analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  analyze_changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ✅ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: 📦 Install Python Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: 🔧 Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: 📦 Install Dart Dependencies
+        run: dart pub get
+
+      - name: 🚀 Run Analysis
+        run: |
+          python api.py &  # تشغيل السيرفر في الخلفية
+          sleep 5  # انتظار تشغيل السيرفر
+          dart run release_manager.dart > analysis_result.txt
+
+      - name: 📢 Post Analysis as PR Comment
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: "🔍 **Release Analysis Result:**\n$(cat analysis_result.txt)"
+        if: github.event_name == 'pull_request'
