@@ -77,7 +77,7 @@ Future<void> createAndPushTag(String newTag) async {
 }
 
 Future<String> getCodeFromVersion(String version) async {
-  final process = await Process.run('git', ['show', '$version:main.dart']);
+  final process = await Process.run('git', ['show', version]);
   if (process.exitCode == 0) {
     return process.stdout.toString();
   } else {
@@ -85,6 +85,7 @@ Future<String> getCodeFromVersion(String version) async {
     return '';
   }
 }
+
 
 void main(List<String> arguments) async {
   try {
