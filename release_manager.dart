@@ -18,9 +18,15 @@ Future<void> analyzeCodeChanges(String oldCode, String newCode) async {
   }
 }
 
-void main() async {
-  String oldCode = "def add(a, b): return a + b";
-  String newCode = "def add(a, b): return a + b + 1";
+void main(List<String> arguments) async {
+  if (arguments.isEmpty) {
+    print("Usage: dart release_manager.dart <old_code> <new_code>");
+    return;
+  }
+
+  String oldCode = arguments[0];
+  String newCode = arguments[1];
 
   await analyzeCodeChanges(oldCode, newCode);
 }
+
