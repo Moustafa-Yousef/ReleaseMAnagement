@@ -9,38 +9,29 @@ on:
       - main
 
 jobs:
-  analyze_changes:
+  jobs:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: ✅ Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: 🔧 Setup Python
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v3
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
-      - name: 📦 Install Python Dependencies
+      - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: 🔧 Setup Dart
-        uses: dart-lang/setup-dart@v1
-        with:
-          sdk: stable
-
-      - name: 📦 Install Dart Dependencies
-        run: dart pub get
-
-      - name: 🚀 Run Analysis
+      - name: Start API Server
         run: |
-          python api.py &  # تشغيل السيرفر في الخلفية
-          sleep 5  # انتظار تشغيل السيرفر
-          dart run release_manager.dart > analysis_result.txt
+          python api.py &
+          sleep 10  # انتظار 10 ثوانٍ للتأكد من تشغيل السيرفر
 
-      - name: 📢 Post Analysis as PR Comment
-        uses: mshick/add-pr-comment@v2
-        with:
-          message: "🔍 **Release Analysis Result:**\n$(cat analysis_result.txt)"
-        if: github.event_name == 'pull_request'
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Run Dart script
+        run: dart release_manager.dart
