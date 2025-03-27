@@ -1,22 +1,31 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:http/http.dart' as http;
 
-void main(List<String> args) async {
-  final oldVersion = args[0];
-  final newVersion = args[1];
+Future<void> analyzeCodeChanges(String oldCode, String newCode) async {
+  var url = Uri.parse("http://localhost:5000/analyze");
 
-  final oldCode = await Process.run('git', ['show', '$oldVersion:main.dart']);
-  final newCode = await Process.run('git', ['show', '$newVersion:main.dart']);
+  var response = await http.post(
+    url,
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({"old_code": oldCode, "new_code": newCode}),
+  );
 
-  final uri = Uri.parse('http://localhost:5000/analyze');
-  final request = await HttpClient().postUrl(uri);
-  request.headers.contentType = ContentType.json;
-  request.write(jsonEncode({
-    'old_code': oldCode.stdout.toString(),
-    'new_code': newCode.stdout.toString()
-  }));
+  if (response.statusCode == 200) {
+    var jsonResponse = jsonDecode(response.body);
+    print("Predicted Change Type: ${jsonResponse['Predicted Change Type']}");
+  } else {
+    print("Error: ${response.body}");
+  }
+}
 
-  final response = await request.close();
-  final result = jsonDecode(await response.transform(utf8.decoder).join());
-  print('Change Type: ${result['Predicted Change Type']}');
+void main(List<String> arguments) async {
+  if (arguments.isEmpty) {
+    print("Usage: dart release_manager.dart <old_code> <new_code>");
+    return;
+  }
+
+  String oldCode = arguments[0];
+  String newCode = arguments[1];
+
+  await analyzeCodeChanges(oldCode, newCode);
 }
