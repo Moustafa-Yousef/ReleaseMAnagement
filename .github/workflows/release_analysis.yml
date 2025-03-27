@@ -35,5 +35,11 @@ jobs:
       - name: Install Dart dependencies
         run: dart pub get
 
+      - name: Get Previous Version
+        id: get_version
+        run: |
+          echo "OLD_VERSION=$(git describe --tags --abbrev=0 || echo '0.0.0')" >> $GITHUB_ENV
+          echo "NEW_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Run Dart script
-        run: dart release_manager.dart
+        run: dart release_manager.dart ${{ env.OLD_VERSION }} ${{ env.NEW_VERSION }}
