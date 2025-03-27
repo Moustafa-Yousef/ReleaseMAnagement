@@ -100,8 +100,9 @@ void main(List<String> arguments) async {
       // جلب الإصدارات من Git
       oldVersion = await getLastTag();
       newVersion = (await Process.run('git', ['rev-parse', '--short', 'HEAD'])).stdout.toString().trim();
-      oldCode = (await Process.run('git', ['diff', oldVersion])).stdout.toString();
-      newCode = (await Process.run('git', ['diff', newVersion])).stdout.toString();
+      oldCode = (await Process.run('git', ['show', '$oldVersion:main.dart'])).stdout.toString();
+      newCode = (await Process.run('git', ['cat', 'main.dart'])).stdout.toString();
+
 
 
     }
