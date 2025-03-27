@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # لجلب تاريخ الـ commits والـ tags كامل
 
       - name: Setup Python
         uses: actions/setup-python@v3
@@ -22,12 +24,18 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Start API Server
         run: |
-          python api.py &
-          sleep 10  # انتظار 10 ثواني للتأكد من تشغيل السيرفر
+          nohup python api.py &  # تشغيل في الخلفية مع nohup
+          sleep 5  # تقليل وقت الانتظار بعد تحسين الـ API
+
+      - name: Wait for API to be ready
+        run: |
+          timeout 30s bash -c "until curl -s http://localhost:5000; do sleep 1; done" || exit 1
+          # الانتظار حتى يصبح الـ API جاهزًا مع حد أقصى 30 ثانية
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
@@ -35,11 +43,16 @@ jobs:
       - name: Install Dart dependencies
         run: dart pub get
 
-      - name: Get Previous Version
+      - name: Get Previous and Current Version
         id: get_version
         run: |
-          echo "OLD_VERSION=$(git describe --tags --abbrev=0 || echo '0.0.0')" >> $GITHUB_ENV
+          echo "OLD_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')" >> $GITHUB_ENV
           echo "NEW_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Run Dart script
-        run: dart release_manager.dart ${{ env.OLD_VERSION }} ${{ env.NEW_VERSION }}
+        run: dart run release_manager.dart ${{ env.OLD_VERSION }} ${{ env.NEW_VERSION }}
+
+      - name: Stop API Server
+        if: always()  # يشتغل حتى لو فشلت الخطوات السابقة
+        run: |
+          pkill -f "python api.py" || true  # إيقاف الـ API
