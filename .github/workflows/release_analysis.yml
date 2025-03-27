@@ -26,7 +26,7 @@ jobs:
 
       - name: Start API Server
         run: |
-          python analysis_server.py &
+          python api.py &
           sleep 10  # انتظار 10 ثواني للتأكد من تشغيل السيرفر
 
       - name: Setup Dart
