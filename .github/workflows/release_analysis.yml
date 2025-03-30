@@ -1,12 +1,14 @@
 name: Release Analysis
 
-on: 
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on:
+  workflow_call:  # ✅ هذا يجعل الـ workflow قابلًا لإعادة الاستخدام
+    inputs:
+      branch:
+        required: false
+        type: string
+    secrets:
+      TOKEN:
+        required: true
 
 jobs:
   analyze_release:
