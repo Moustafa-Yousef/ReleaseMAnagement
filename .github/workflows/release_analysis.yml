@@ -1,6 +1,7 @@
 name: Release Analysis
 
 on: 
+  workflow_call:
   push:
     branches:
       - main
