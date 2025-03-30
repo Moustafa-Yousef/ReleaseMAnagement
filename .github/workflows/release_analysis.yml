@@ -1,13 +1,15 @@
 name: Release Analysis
 
-on: 
+on:
   workflow_call:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    inputs:
+      branch:
+        required: false
+        type: string
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
 
 jobs:
   analyze_release:
