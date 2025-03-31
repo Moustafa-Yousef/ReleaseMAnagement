@@ -18,7 +18,7 @@ jobs:
           docker build -t ghcr.io/YOUR_GITHUB_USERNAME/release-analysis:latest .
       
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u USERNAME --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u mostfarwag -p WDbEz6(T5Qb#!7W 
 
       - name: Push Docker Image
         run: |
