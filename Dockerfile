@@ -1,33 +1,27 @@
-# صورة أساسية بـ Python
-FROM python:3.11-slim
+# Base image مع Python
+FROM python:3.10-slim AS base
 
-# تثبيت Git وأدوات أساسية
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# تثبيت الأدوات الأساسية (Git + curl)
+RUN apt-get update && apt-get install -y git curl
 
 # تثبيت Dart
-RUN apt-get update && apt-get install -y apt-transport-https && \
-    curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/dart.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main" | tee /etc/apt/sources.list.d/dart.list && \
+RUN apt-get install -y apt-transport-https && \
+    sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -' && \
+    sh -c 'curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list' && \
     apt-get update && apt-get install -y dart
 
-# إعداد مسار العمل
+# إعداد بيئة العمل
 WORKDIR /app
 
-# نسخ ملفات Python وتثبيت الـ dependencies
-COPY api.py .
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# نسخ ملفات المشروع
+COPY api.py requirements.txt release_manager.dart ./
 
-# نسخ ملفات Dart وتثبيت الـ dependencies
-COPY release_manager.dart .
-COPY pubspec.yaml .
+# تثبيت Python dependencies
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# تثبيت Dart dependencies
 RUN dart pub get
 
-# فتح الـ port بتاع الـ API
-EXPOSE 5000
-
-# الأمر الافتراضي لتشغيل الـ API والـ Dart script
-CMD ["bash", "-c", "python api.py & sleep 5 && dart run release_manager.dart"]
+# تعريف نقطة الدخول
+# بنستخدم bash علشان نشغل الـ API في الخلفية ونرن الـ Dart script
+CMD ["bash", "-c", "nohup python api.py & sleep 5 && dart run release_manager.dart $REPO_URL"]
