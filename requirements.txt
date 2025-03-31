@@ -1,8 +1,4 @@
-flask
+fastapi
+uvicorn
 transformers
 torch
-scikit-learn
-pandas
-requests
-fastapi 
-uvicorn
