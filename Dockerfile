@@ -1,32 +1,28 @@
-# استخدم Ubuntu كأساس
+
+# استخدم Ubuntu 22.04 كأساس
 FROM ubuntu:22.04
 
-# تثبيت الأدوات الأساسية مثل curl، wget، git، Python
-RUN apt update && apt install -y \
-    curl wget unzip python3 python3-pip git \
+# تثبيت الأدوات الأساسية و Python
+RUN apt update && apt install -y curl wget unzip python3 python3-pip \
     && apt clean
 
 # إضافة مستودع Dart الرسمي وتثبيته
-RUN curl -fsSL https://storage.googleapis.com/download.dartlang.org/linux/debian/stable/gpg | gpg --dearmor -o /usr/share/keyrings/dart-archive-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/dart-archive-keyring.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main" > /etc/apt/sources.list.d/dart_stable.list \
+RUN wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/dart.gpg \
+
+    && echo "deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main" \
+    | tee /etc/apt/sources.list.d/dart.list > /dev/null \
     && apt update \
-    && apt install -y dart \
-    && apt clean
+    && apt install -y dart
+
+
 
 # ضبط متغير البيئة لـ Dart
 ENV PATH="$PATH:/usr/lib/dart/bin"
-
-# إنشاء مجلد العمل داخل الحاوية
-WORKDIR /app
-
-# نسخ الملفات المطلوبة من الريبو
-COPY . . 
-
+@@ -24,7 +27,6 @@ COPY . .
 # تثبيت المكتبات المطلوبة من requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# إضافة الكود Dart (لو هو موجود في الريبو)
-COPY release_manager.dart /app/release_manager.dart
+# تشغيل سكريبت Dart (إذا كان لديك سكريبت Dart رئيسي)
 
-# تشغيل التطبيق (هنا لو عندك سكربت معين في الـ Dart أو بايثون)
-CMD ["bash", "-c", "python3 api.py && dart run release_manager.dart"]
+# شغل التحليل عند بدء الكونتينر
+CMD ["bash", "-c", "python3 api.py && dart run release_analysis.dart"]
