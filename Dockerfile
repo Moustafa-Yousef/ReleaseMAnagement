@@ -17,6 +17,10 @@ RUN wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dear
 # ضبط متغير البيئة لـ Dart
 ENV PATH="$PATH:/usr/lib/dart/bin"
 
+# تحديد الإصدارات القديمة والجديدة باستخدام Git
+RUN git describe --tags --abbrev=0 > old_version.txt || echo "0.0.0" > old_version.txt \
+    && git rev-parse --short HEAD > new_version.txt
+
 # إنشاء مجلد العمل داخل الحاوية
 WORKDIR /app
 
@@ -29,12 +33,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # تنزيل Dart سكربت النسخة
 COPY release_manager.dart /app/release_manager.dart
 
-# تحديد الإصدارات القديمة والجديدة باستخدام Git
-RUN echo "OLD_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')" >> $GITHUB_ENV \
-    && echo "NEW_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
 # تشغيل سكربت Dart لتحديد الإصدار
-RUN dart run release_manager.dart $OLD_VERSION $NEW_VERSION
+RUN dart run release_manager.dart $(cat old_version.txt) $(cat new_version.txt)
 
-# تشغّل الـ API أو سكربت آخر
+# تشغيل API أو سكربت آخر بعد تحديد الإصدار
 CMD ["python3", "api.py"]
