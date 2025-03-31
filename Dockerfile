@@ -1,32 +1,33 @@
-# استخدم صورة Python 3.10 slim كأساس (أخف من Ubuntu)
-FROM python:3.10-slim
+# صورة أساسية بـ Python
+FROM python:3.11-slim
 
-# تثبيت الأدوات الأساسية و Dart
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# تثبيت Git وأدوات أساسية
+RUN apt-get update && apt-get install -y \
+    git \
     curl \
-    wget \
-    unzip \
-    gnupg \
-    && wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/dart.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main" \
-    | tee /etc/apt/sources.list.d/dart.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends dart \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# ضبط متغير البيئة لـ Dart
-ENV PATH="$PATH:/usr/lib/dart/bin"
+# تثبيت Dart
+RUN apt-get update && apt-get install -y apt-transport-https && \
+    curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/dart.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main" | tee /etc/apt/sources.list.d/dart.list && \
+    apt-get update && apt-get install -y dart
 
-# إنشاء مجلد العمل داخل الحاوية
+# إعداد مسار العمل
 WORKDIR /app
 
-# نسخ الملفات المطلوبة من الريبو
-COPY . .
-
-# تثبيت المكتبات المطلوبة من requirements.txt
+# نسخ ملفات Python وتثبيت الـ dependencies
+COPY api.py .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# تشغيل التحليل عند بدء الكونتينر
+# نسخ ملفات Dart وتثبيت الـ dependencies
+COPY release_manager.dart .
+COPY pubspec.yaml .
+RUN dart pub get
 
-CMD ["bash", "-c", "python3 api.py && dart run release_analysis.dart"]
+# فتح الـ port بتاع الـ API
+EXPOSE 5000
+
+# الأمر الافتراضي لتشغيل الـ API والـ Dart script
+CMD ["bash", "-c", "python api.py & sleep 5 && dart run release_manager.dart"]
