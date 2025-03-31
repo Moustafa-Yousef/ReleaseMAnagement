@@ -18,7 +18,7 @@ jobs:
           docker build -t ghcr.io/moustafa-yousef/release-analysis:latest .
       
       - name: Login to GitHub Container Registry
-        run: echo "WDbEz6\(T5Qb\#\!7W" | docker login ghcr.io -u mostfarwag --password-stdin
+        run: echo "01208799aS@" | docker login ghcr.io -u Moustafa-Yousef --password-stdin
 
 
       - name: Push Docker Image
