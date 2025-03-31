@@ -1,7 +1,7 @@
-# استخدم Ubuntu 22.04 كأساس
+# استخدم Ubuntu كأساس
 FROM ubuntu:22.04
 
-# تثبيت الأدوات الأساسية و Git و Python و Dart
+# تثبيت الأدوات الأساسية مثل curl، wget، git، Python، Dart
 RUN apt update && apt install -y \
     curl wget unzip python3 python3-pip \
     git \
@@ -11,20 +11,15 @@ RUN apt update && apt install -y \
 # ضبط متغير البيئة لـ Dart
 ENV PATH="$PATH:/usr/lib/dart/bin"
 
-# نسخ ملفات المشروع إلى الحاوية
+# إنشاء مجلد العمل داخل الحاوية
 WORKDIR /app
-COPY . .
 
-# تحديد الإصدارات القديمة والجديدة باستخدام Git داخل الريبو
-RUN git describe --tags --abbrev=0 > old_version.txt || echo "0.0.0" > old_version.txt \
-    && git rev-parse --short HEAD > new_version.txt
-
-# تثبيت المكتبات المطلوبة من requirements.txt
+# تثبيت المكتبات المطلوبة من requirements.txt (لو موجودة)
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# تشغيل سكربت Dart لتحديد الإصدار
+# إضافة الكود Dart (لو هو موجود في الريبو)
 COPY release_manager.dart /app/release_manager.dart
-RUN dart run release_manager.dart $(cat /app/old_version.txt) $(cat /app/new_version.txt)
 
-# شغل API أو سكربت آخر بعد تحديد الإصدار
-CMD ["python3", "api.py"]
+# تشغيل التطبيق (هنا لو عندك سكربت معين في الـ Dart أو بايثون)
+CMD ["bash", "-c", "python3 api.py && dart run release_manager.dart"]
