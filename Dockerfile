@@ -1,5 +1,5 @@
 # استخدم Ubuntu 22.04 كأساس
-FROM node:alpine
+FROM ubuntu:22.04
 
 # تثبيت الأدوات الأساسية و Python
 RUN apt update && apt install -y curl wget unzip python3 python3-pip \
@@ -22,7 +22,7 @@ WORKDIR /app
 COPY . .
 
 # تثبيت المكتبات المطلوبة من requirements.txt
-#RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # تشغيل سكريبت Dart (إذا كان لديك سكريبت Dart رئيسي)
 
