@@ -18,7 +18,7 @@ RUN wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dear
 
 # ضبط متغير البيئة لـ Dart
 ENV PATH="$PATH:/usr/lib/dart/bin"
-@@ -24,7 +27,6 @@ COPY . .
+
 # تثبيت المكتبات المطلوبة من requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
