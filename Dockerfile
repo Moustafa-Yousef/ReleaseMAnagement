@@ -22,7 +22,7 @@ WORKDIR /app
 COPY . .
 
 # تثبيت المكتبات المطلوبة من requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+#RUN pip install --no-cache-dir -r requirements.txt
 
 # تشغيل سكريبت Dart (إذا كان لديك سكريبت Dart رئيسي)
 
