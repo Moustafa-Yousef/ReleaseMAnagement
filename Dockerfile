@@ -1,5 +1,5 @@
 # استخدم Ubuntu 22.04 كأساس
-FROM ubuntu:22.04
+FROM node:alpine
 
 # تثبيت الأدوات الأساسية و Python
 RUN apt update && apt install -y curl wget unzip python3 python3-pip \
