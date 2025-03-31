@@ -17,8 +17,9 @@ jobs:
         run: |
           docker build -t ghcr.io/moustafa-yousef/release-analysis:latest .
       
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u mostfarwag -p WDbEz6(T5Qb#!7W 
+      - name: Login to GitHub Container Registry
+        run: echo "WDbEz6\(T5Qb\#\!7W" | docker login ghcr.io -u mostfarwag --password-stdin
+
 
       - name: Push Docker Image
         run: |
