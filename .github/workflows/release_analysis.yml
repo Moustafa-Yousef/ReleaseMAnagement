@@ -22,5 +22,5 @@ jobs:
       - name: Build Docker Image
         run: docker build -t mostfarwag/release:latest .
       - name: Push Docker Image
-        run: docker push mostfarwag/release-analysis:latest
+        run: docker push mostfarwag/release:latest
 
