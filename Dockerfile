@@ -1,38 +1,30 @@
-# استخدم صورة Python 3.10 slim كأساس (أخف من Ubuntu)
+# استخدم Python slim image كـ base image
 FROM python:3.10-slim
 
-# تثبيت الأدوات الأساسية و Dart
+# تثبيت الأدوات المطلوبة
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     unzip \
     gnupg \
     git \
-    && wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/dart.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main" \
-    | tee /etc/apt/sources.list.d/dart.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends dart \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# ضبط متغير البيئة لـ Dart
-ENV PATH="$PATH:/usr/lib/dart/bin"
+# تثبيت مكتبات Python
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# إنشاء مجلد العمل داخل الحاوية
+# تثبيت Dart
+RUN apt-get update && apt-get install -y dart
+
+# نسخ ملفات المشروع
+COPY . /app
+
 WORKDIR /app
 
-# نسخ الملفات المطلوبة من الريبو
-COPY . .
-
-# تثبيت المكتبات المطلوبة من requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# تثبيت Dart dependencies
-RUN dart pub get
-
-# فتح المنفذ 5000 لتتمكن من الاتصال بالـ API
+# expose the port for the API
 EXPOSE 5000
 
-# تشغيل التحليل عند بدء الكونتينر
-CMD ["bash", "-c", "nohup python3 api.py & while ! curl -s http://localhost:5000/analyze > /dev/null; do sleep 1; done && dart run release_manager.dart $REPO_URL"]
+# تشغيل FastAPI (تطبيق Python) في البداية
+CMD ["bash", "-c", "nohup python3 api.py & dart run release_manager.dart $REPO_URL"]
