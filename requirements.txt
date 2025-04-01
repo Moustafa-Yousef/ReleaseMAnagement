@@ -6,3 +6,4 @@ pandas
 requests
 fastapi 
 uvicorn
+huggingface_hub
