@@ -32,4 +32,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN dart pub get
 
 # تشغيل التحليل عند بدء الكونتينر
-CMD ["bash", "-c", "nohup python3 api.py & sleep 5 && NEW_TAG=$(dart run release_manager.dart $REPO_URL) && echo $NEW_TAG > /app/new_tag.txt"]
+CMD ["bash", "-c", "python3 api.py & sleep 5 && NEW_TAG=$(dart run release_manager.dart $REPO_URL) && echo $NEW_TAG > /app/new_tag.txt"]
