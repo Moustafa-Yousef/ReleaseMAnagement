@@ -5,11 +5,11 @@ from functools import lru_cache
 
 app = FastAPI()
 
-# استخدام نموذج مُدرب مسبقًا لتحليل رسائل الكوميت
+# تحميل الموديل الخاص بـ CommitBERT
 @lru_cache()
 def load_model_and_tokenizer():
-    tokenizer = AutoTokenizer.from_pretrained("commit-message-classifier")  # نموذج مدرب مسبقًا
-    model = AutoModelForSequenceClassification.from_pretrained("commit-message-classifier", num_labels=3)
+    tokenizer = AutoTokenizer.from_pretrained("mrm8488/bert-small-finetuned-commit-msg")
+    model = AutoModelForSequenceClassification.from_pretrained("mrm8488/bert-small-finetuned-commit-msg", num_labels=3)
     return tokenizer, model
 
 tokenizer, model = load_model_and_tokenizer()
