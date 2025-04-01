@@ -1,16 +1,14 @@
 from fastapi import FastAPI, HTTPException
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torch
 from functools import lru_cache
 
 app = FastAPI()
 
 @lru_cache()
-
-
 def load_model_and_tokenizer():
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/graphcodebert-base")
-    model = AutoModelForSequenceClassification.from_pretrained("microsoft/graphcodebert-base", num_labels=3)
+    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+    model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=3)
     return tokenizer, model
 
 tokenizer, model = load_model_and_tokenizer()
