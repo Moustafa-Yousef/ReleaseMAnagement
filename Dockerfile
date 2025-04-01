@@ -1,3 +1,4 @@
+# استخدم صورة Python 3.10 slim كأساس (أخف من Ubuntu)
 FROM python:3.10-slim
 
 # تثبيت الأدوات الأساسية و Dart
@@ -30,5 +31,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # تثبيت Dart dependencies
 RUN dart pub get
 
-CMD ["bash", "-c", "python3 api.py && dart run release_analysis.dart $REPO_URL"]
-# تشغيل التحليل وكتابة الـ NEW_TAG في ملف فقط
+# تشغيل التحليل عند بدء الكونتينر
+CMD ["bash", "-c", "nohup python3 api.py & sleep 5 && dart run release_manager.dart $REPO_URL"]
