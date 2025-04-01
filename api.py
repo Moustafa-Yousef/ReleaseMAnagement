@@ -1,15 +1,15 @@
-# app.py
 from fastapi import FastAPI, HTTPException
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 from functools import lru_cache
 
 app = FastAPI()
 
+# استخدام نموذج مُدرب مسبقًا لتحليل رسائل الكوميت
 @lru_cache()
 def load_model_and_tokenizer():
-    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-    model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=3)
+    tokenizer = AutoTokenizer.from_pretrained("commit-message-classifier")  # نموذج مدرب مسبقًا
+    model = AutoModelForSequenceClassification.from_pretrained("commit-message-classifier", num_labels=3)
     return tokenizer, model
 
 tokenizer, model = load_model_and_tokenizer()
