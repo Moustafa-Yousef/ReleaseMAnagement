@@ -89,8 +89,8 @@ void main(List<String> arguments) async {
     // جلب الإصدارات
     String oldVersion = await getLastTag();
     String newVersion = (await Process.run('git', ['rev-parse', '--short', 'HEAD'])).stdout.toString().trim();
-    String oldCode = await getCodeFromVersion(oldVersion.isEmpty ? newVersion : oldVersion, 'main.dart');
-    String newCode = (await File('main.dart').readAsString());
+    String oldCode = await getCodeFromVersion(oldVersion.isEmpty ? newVersion : oldVersion, 'release_manager.dart');
+    String newCode = (await File('release_manager.dar').readAsString());
 
     // تحليل التغييرات
     final changeType = await analyzeCodeChanges(oldCode, newCode);
