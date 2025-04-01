@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-Future<String> analyzeCodeChanges(String oldCode, String newCode) async {
-  var url = Uri.parse("http://localhost:5000/analyze");
+Future<String> analyzeCommitMessage(String commitMessage) async {
+  var url = Uri.parse("http://localhost:5000/analyze"); // أو عنوان الـ API الذي تحلل منه
   var response = await http.post(
     url,
     headers: {"Content-Type": "application/json"},
-    body: jsonEncode({"old_code": oldCode, "new_code": newCode}),
+    body: jsonEncode({"old_code": commitMessage, "new_code": commitMessage}),
   );
 
   if (response.statusCode == 200) {
@@ -15,7 +15,7 @@ Future<String> analyzeCodeChanges(String oldCode, String newCode) async {
     return jsonResponse['Predicted Change Type'];
   } else {
     print("Error: ${response.body}");
-    throw Exception('Failed to analyze code changes');
+    throw Exception('Failed to analyze commit message');
   }
 }
 
@@ -59,15 +59,7 @@ Future<void> createAndPushTag(String newTag, String repoUrl) async {
   print('New tag created and pushed: $newTag');
 }
 
-Future<String> getCodeFromVersion(String version, String filePath) async {
-  final process = await Process.run('git', ['show', '$version:$filePath']);
-  if (process.exitCode == 0) {
-    return process.stdout.toString();
-  }
-  return '';
-}
-
-void main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   try {
     if (arguments.isEmpty) {
       print("Please provide a repository URL as an argument");
@@ -76,24 +68,18 @@ void main(List<String> arguments) async {
 
     String repoUrl = arguments[0];
     String tempDir = './temp_repo';
-    
-    // Clone الـ repo
-    print("Cloning repository: $repoUrl");
-    await Process.run('git', ['clone', repoUrl, tempDir]);
-    Directory.current = tempDir;
 
-    // Configure Git (لأننا في بيئة Docker)
-    await Process.run('git', ['config', 'user.email', 'ci@example.com']);
-    await Process.run('git', ['config', 'user.name', 'CI Bot']);
+    // Clone الـ repo فقط لو حاجة ضرورية لكن في هذه الحالة نستخدم الريبو الموجود في الكونتينر
+    // print("Cloning repository: $repoUrl");
+    // await Process.run('git', ['clone', repoUrl, tempDir]);
+    // Directory.current = tempDir;
 
-    // جلب الإصدارات
-    String oldVersion = await getLastTag();
-    String newVersion = (await Process.run('git', ['rev-parse', '--short', 'HEAD'])).stdout.toString().trim();
-    String oldCode = await getCodeFromVersion(oldVersion.isEmpty ? newVersion : oldVersion, 'release_manager.dart');
-    String newCode = (await File('release_manager.dar').readAsString());
+    // عملية الحصول على آخر commit وقراءة الرسالة الخاصة به
+    var process = await Process.run('git', ['log', '--format=%B', '-n', '1']);
+    String commitMessage = process.stdout.toString().trim();
 
-    // تحليل التغييرات
-    final changeType = await analyzeCodeChanges(oldCode, newCode);
+    // تحليل الـ commit message
+    final changeType = await analyzeCommitMessage(commitMessage);
     print("Predicted Change Type: $changeType");
 
     // تحديث الـ tag
