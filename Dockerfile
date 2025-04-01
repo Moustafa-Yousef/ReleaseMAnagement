@@ -31,6 +31,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # تثبيت Dart dependencies
 RUN dart pub get
 
+# فتح المنفذ 5000 لتتمكن من الاتصال بالـ API
+EXPOSE 5000
+
 # تشغيل التحليل عند بدء الكونتينر
 CMD ["bash", "-c", "nohup python3 api.py & while ! curl -s http://localhost:5000/analyze > /dev/null; do sleep 1; done && dart run release_manager.dart $REPO_URL"]
-
