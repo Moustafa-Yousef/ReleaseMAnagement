@@ -1,5 +1,5 @@
 # استخدم صورة Python 3.10 slim كأساس (أخف من Ubuntu)
-FROM python:3.10-slim
+FROM ubuntu:22.04
 
 # تثبيت الأدوات الأساسية و Dart
 RUN apt-get update && apt-get install -y --no-install-recommends \
