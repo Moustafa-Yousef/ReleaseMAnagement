@@ -32,4 +32,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN dart pub get
 
 # تشغيل التحليل عند بدء الكونتينر
-CMD ["bash", "-c", "nohup python3 api.py & sleep 5 && dart run release_manager.dart $REPO_URL"]
+CMD ["bash", "-c", "nohup python3 api.py & sleep 5 && curl --retry 5 --retry-connrefused http://localhost:5000/analyze && dart run release_manager.dart $REPO_URL"]
+
