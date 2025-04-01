@@ -1,56 +1,25 @@
+name: Build and Push Docker Image
 
-name: Release Analysis
-
-on: 
+on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - main  # يشتغل لما تعمل Push على الـ main
 
 jobs:
-  analyze_release:
+  build-and-push:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # صلاحية لتعديل الريبو ورفع الـ tags
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Login to Docker Hub
+        run: echo "WDbEz6(T5Qb#!7W" | docker login -u "mostfarwag" --password-stdin
 
-      - name: Setup Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Start API Server
-        run: |
-          nohup python api.py &
-          sleep 5
-      - name: Wait for API to be ready
-        run: |
-          timeout 30s bash -c "until curl -s http://localhost:5000; do sleep 1; done" || exit 1
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
 
-      - name: Install Dart dependencies
-        run: dart pub get
 
-      - name: Get Previous and Current Version
-        id: get_version
-        run: |
-          echo "OLD_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')" >> $GITHUB_ENV
-          echo "NEW_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-      - name: Run Dart script
-        run: dart run release_manager.dart ${{ env.OLD_VERSION }} ${{ env.NEW_VERSION }}
-
-      - name: Stop API Server
-        if: always()
-        run: |
-          pkill -f "python api.py" || true
+      
+      - name: Build Docker Image
+        run: docker build -t mostfarwag/release:4 .
+      - name: Push Docker Image
+        run: docker push mostfarwag/release:4
