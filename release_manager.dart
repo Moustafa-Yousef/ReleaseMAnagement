@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 Future<String> analyzeCommitMessage(String commitMessage) async {
-  var url = Uri.parse("http://localhost:5000/analyze"); // URL للـ API في Python
+  var url = Uri.parse("http://localhost:5000/analyze"); // عنوان الـ API
   var response = await http.post(
     url,
     headers: {"Content-Type": "application/json"},
-    body: jsonEncode({"commit_message": commitMessage}),  // تأكد من أن الاسم متطابق مع الـ API
+    body: jsonEncode({"commit_message": commitMessage}),
   );
 
   if (response.statusCode == 200) {
@@ -54,6 +54,7 @@ String incrementTag(String lastTag, String changeType) {
 }
 
 Future<void> createAndPushTag(String newTag, String repoUrl) async {
+  // استخدام git tag و git push لإنشاء ورفع التاج
   await Process.run('git', ['tag', newTag]);
   await Process.run('git', ['push', 'origin', newTag]);
   print('New tag created and pushed: $newTag');
@@ -67,9 +68,8 @@ Future<void> main(List<String> arguments) async {
     }
 
     String repoUrl = arguments[0];
-    String tempDir = './temp_repo';
 
-    // عملية الحصول على آخر commit وقراءة الرسالة الخاصة به
+    // الحصول على آخر commit وقراءة الرسالة الخاصة به
     var process = await Process.run('git', ['log', '--format=%B', '-n', '1']);
     String commitMessage = process.stdout.toString().trim();
 
