@@ -23,7 +23,7 @@ ENV PATH="$PATH:/usr/lib/dart/bin"
 WORKDIR /app
 
 # نسخ الملفات المطلوبة من الريبو
-COPY ..
+COPY . .
 
 # تثبيت المكتبات المطلوبة من requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
