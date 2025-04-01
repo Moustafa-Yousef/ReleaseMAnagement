@@ -2,13 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-Future<String> analyzeCodeChanges(String oldCode, String newCode) async {
-  var url = Uri.parse("http://localhost:5000/analyze");
-
+Future<String> analyzeCommitMessage(String commitMessage) async {
+  var url = Uri.parse("http://localhost:5000/analyze"); // أو عنوان الـ API الذي تحلل منه
   var response = await http.post(
     url,
     headers: {"Content-Type": "application/json"},
-    body: jsonEncode({"old_code": oldCode, "new_code": newCode}),
+    body: jsonEncode({"old_code": commitMessage, "new_code": commitMessage}),
   );
 
   if (response.statusCode == 200) {
@@ -16,7 +15,7 @@ Future<String> analyzeCodeChanges(String oldCode, String newCode) async {
     return jsonResponse['Predicted Change Type'];
   } else {
     print("Error: ${response.body}");
-    throw Exception('Failed to analyze code changes');
+    throw Exception('Failed to analyze commit message');
   }
 }
 
@@ -25,20 +24,16 @@ Future<String> getLastTag() async {
   if (process.exitCode == 0) {
     return process.stdout.toString().trim();
   }
-  return ''; // لو مفيش تاغات، نرجع سلسلة فاضية
+  return ''; // لو مفيش تاغات
 }
 
 String incrementTag(String lastTag, String changeType) {
-  // لو مفيش تاغات قبل كده، نبدأ من v1.0.0
   if (lastTag.isEmpty) return 'v1.0.0';
-
-  // افتراض إن التاغ بصيغة vX.Y.Z
   final parts = lastTag.replaceFirst('v', '').split('.');
   int major = int.parse(parts[0]);
   int minor = int.parse(parts[1]);
   int patch = int.parse(parts[2]);
 
-  // زيادة الإصدار بناءً على نوع التغيير
   switch (changeType) {
     case 'major':
       major += 1;
@@ -55,70 +50,40 @@ String incrementTag(String lastTag, String changeType) {
     default:
       throw Exception('Unknown change type: $changeType');
   }
-
   return 'v$major.$minor.$patch';
 }
 
-Future<void> createAndPushTag(String newTag) async {
-  // إنشاء الـ tag
-  final tagResult = await Process.run('git', ['tag', newTag]);
-  if (tagResult.exitCode != 0) {
-    print('Error creating tag: ${tagResult.stderr}');
-    return;
-  }
-
-  // رفع الـ tag لـ GitHub
-  final pushResult = await Process.run('git', ['push', 'origin', newTag]);
-  if (pushResult.exitCode == 0) {
-    print('New tag created and pushed: $newTag');
-  } else {
-    print('Error pushing tag: ${pushResult.stderr}');
-  }
+Future<void> createAndPushTag(String newTag, String repoUrl) async {
+  // استخدام git tag و git push لإنشاء ورفع التاج
+  await Process.run('git', ['tag', newTag]);
+  await Process.run('git', ['push', 'origin', newTag]);
+  print('New tag created and pushed: $newTag');
 }
 
-Future<String> getCodeFromVersion(String version) async {
-  final process = await Process.run('git', ['show', version]);
-  if (process.exitCode == 0) {
-    return process.stdout.toString();
-  } else {
-    print('Error getting code for $version: ${process.stderr}');
-    return '';
-  }
-}
-
-
-void main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   try {
-    // لو مفيش أرجومنتات، نستخدم الإصدارات من Git
-    String oldCode, newCode;
-    String oldVersion, newVersion;
-
-    if (arguments.length == 2) {
-      oldCode = arguments[0];
-      newCode = arguments[1];
-    } else {
-      // جلب الإصدارات من Git
-      oldVersion = await getLastTag();
-      newVersion = (await Process.run('git', ['rev-parse', '--short', 'HEAD'])).stdout.toString().trim();
-      oldCode = (await Process.run('git', ['show', '$oldVersion:main.dart'])).stdout.toString();
-      newCode = (await Process.run('git', ['cat', 'main.dart'])).stdout.toString();
-
-
-
+    if (arguments.isEmpty) {
+      print("Please provide a repository URL as an argument");
+      exit(1);
     }
 
-    // تحليل التغييرات
-    final changeType = await analyzeCodeChanges(oldCode, newCode);
+    String repoUrl = arguments[0];
+
+    // الحصول على آخر commit وقراءة الرسالة الخاصة به
+    var process = await Process.run('git', ['log', '--format=%B', '-n', '1']);
+    String commitMessage = process.stdout.toString().trim();
+
+    // تحليل الـ commit message
+    final changeType = await analyzeCommitMessage(commitMessage);
     print("Predicted Change Type: $changeType");
 
-    // جلب آخر تاغ وتحديثه
+    // تحديث الـ tag
     final lastTag = await getLastTag();
     final newTag = incrementTag(lastTag, changeType);
+    await createAndPushTag(newTag, repoUrl);
 
-    // إنشاء ورفع الـ tag الجديد
-    await createAndPushTag(newTag);
   } catch (e) {
-    print('Error in release manager: $e');
+    print('Error: $e');
     exit(1);
   }
 }
